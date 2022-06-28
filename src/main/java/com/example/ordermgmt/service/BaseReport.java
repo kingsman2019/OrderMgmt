@@ -9,6 +9,7 @@ import com.example.ordermgmt.util.CommonHelper;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -24,17 +25,25 @@ public abstract class BaseReport {
     @Setter
     private Order order;
 
-    @Getter
-    @Setter
     private List<OrderLineItem> aggregatedOrderLines;
+
+    public List<OrderLineItem> getAggregatedOrderLines() {
+        initAggregatedOrderLines();
+        return aggregatedOrderLines;
+    }
+
+    private void initAggregatedOrderLines() {
+        if (CollectionUtils.isEmpty(aggregatedOrderLines)) {
+            aggregatedOrderLines = CommonHelper.aggregateOrderLines(order.getOrderLineItemList());
+        }
+    }
 
     /**
      * Print order line structure
      */
     protected void printOrderLines() {
-        aggregatedOrderLines = CommonHelper.aggregateOrderLines(order.getOrderLineItemList());
-
-        Map<String, OrderLineItem> orderLineItemMap = CommonHelper.populateOrderLineMapByShapeAndColor(aggregatedOrderLines);
+        Map<String, OrderLineItem> orderLineItemMap = CommonHelper.populateOrderLineMapByShapeAndColor(
+                getAggregatedOrderLines());
 
         orderLineItemMap.forEach((k, v) -> {
             log.info("{} {} has quantity {}",
@@ -48,18 +57,18 @@ public abstract class BaseReport {
      * Calculate the total price of shape based pricing
      * @return BigDecimal
      */
-    private BigDecimal calcShapePriceTotal() {
+    protected BigDecimal calcShapePriceTotal() {
         BasePriceCalculator calculator = new ShapePriceCalculator();
-        return calculator.calcPrice(order.getOrderLineItemList());
+        return calculator.calcPrice(getAggregatedOrderLines());
     }
 
     /**
      * Calculate the total price of color based pricing
      * @return BigDecimal
      */
-    private BigDecimal calcColorPriceTotal() {
+    protected BigDecimal calcColorPriceTotal() {
         BasePriceCalculator calculator = new ColorPriceCalculator();
-        return calculator.calcPrice(order.getOrderLineItemList());
+        return calculator.calcPrice(getAggregatedOrderLines());
     }
 
     /**

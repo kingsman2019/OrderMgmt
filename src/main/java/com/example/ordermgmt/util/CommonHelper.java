@@ -1,7 +1,11 @@
 package com.example.ordermgmt.util;
 
+import com.example.ordermgmt.domain.color.IColor;
 import com.example.ordermgmt.domain.order.OrderLineItem;
+import com.example.ordermgmt.domain.shape.IShape;
+import com.example.ordermgmt.exception.BaseException;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -69,7 +73,7 @@ public class CommonHelper {
     }
 
     /**
-     * Populate the order line map,with key of ShapeName:ColorName
+     * Populate the order line map from order line list, with map key of ShapeName:ColorName
      * @param orderLineItemList List<OrderLineItem>
      * return Map<String,OrderLineItem>
      */
@@ -80,7 +84,8 @@ public class CommonHelper {
         return orderLineMap;
     }
 
-    /**Return order lines with map of shape name and all items of this shape
+    /**
+     * Return order lines with map of shape name and all items of this shape
      * @param orderLineItemList List<OrderLineItem>
      * return List<OrderLineItem>
      */
@@ -88,12 +93,34 @@ public class CommonHelper {
         return orderLineItemList.stream().collect(Collectors.groupingBy(item -> item.getItemShape().getName()));
     }
 
-    /**Return order lines with map of color name and all items of this color
+    /**
+     * Return order lines with map of color name and all items of this color
      * @param orderLineItemList List<OrderLineItem>
      * return List<OrderLineItem>
      */
     public static Map<String,List<OrderLineItem>> classifyOrderLinesByColor(List<OrderLineItem> orderLineItemList) {
         return orderLineItemList.stream().collect(Collectors.groupingBy(item -> item.getItemColor().getName()));
     }
+
+    /**
+     * Get basic price of Shape category
+     * @param item OrderLineItem
+     * @return BigDecimal
+     */
+    public static BigDecimal getBasicPriceOfShape(OrderLineItem item) {
+        IShape shape = Optional.ofNullable(item.getItemShape()).orElseThrow(() -> new BaseException("Shape is null"));
+        return shape.getBasicPrice();
+    }
+
+    /**
+     * Get additional price of Color category
+     * @param item OrderLineItem
+     * @return BigDecimal
+     */
+    public static BigDecimal getAdditionalPriceOfColor(OrderLineItem item) {
+        IColor color = Optional.ofNullable(item.getItemColor()).orElseThrow(() -> new BaseException("Color is null"));
+        return color.getAdditionalPrice();
+    }
+
 }
 
